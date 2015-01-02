@@ -49,17 +49,13 @@ class PixelSort {
 	private Stack<BufferedImage> stackUndo = new Stack<BufferedImage>();
 	private Stack<BufferedImage> stackRedo = new Stack<BufferedImage>();
 
-	public PixelSort(File input) {
+	public PixelSort(File input) throws IOException {
 		file = input;
 
 		imageName = input.getName();
 		imagePath = input.getAbsolutePath();
 
-		try {
-			image = ImageIO.read(file);
-		} catch(IOException e) {
-			JOptionPane.showMessageDialog(null, "Unsupported or damaged image!", "Image error", JOptionPane.ERROR_MESSAGE);    
-		}
+		image = ImageIO.read(file);
 	}
 
 	public File getFile() {
@@ -79,7 +75,7 @@ class PixelSort {
 		image.flush();
 	}
 
-	static BufferedImage deepCopy(BufferedImage bi) {
+	public BufferedImage deepCopy(BufferedImage bi) {
 		ColorModel cm = bi.getColorModel();
 		boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
 		WritableRaster raster = bi.copyData(null);
@@ -199,26 +195,18 @@ class PixelSort {
 		}
 	}
 
-	public void write() {          
-		try {
-			String tmp[] = imageName.split("\\.");
+	public void write() throws IOException {          
+		String tmp[] = imageName.split("\\.");
 
-			String format = tmp[tmp.length-1];
-			ImageIO.write(image, format, new File(imagePath));  
-		} catch(Exception e) {
-			JOptionPane.showMessageDialog(null, "Unknown error ocurred while writing to file!", "Write error", JOptionPane.ERROR_MESSAGE);    
-		}
+		String format = tmp[tmp.length-1];
+		ImageIO.write(image, format, new File(imagePath));    
 	}
 
-	public void write(String out) {
-		try {
-			String tmp[] = out.split("\\.");
+	public void write(String out) throws IOException {
+		String tmp[] = out.split("\\.");
 
-			String format = tmp[tmp.length-1];
-			ImageIO.write(image, format, new File(out));  
-		} catch(Exception e) {
-			JOptionPane.showMessageDialog(null, "Unknown error ocurred while writing to file!", "Write error", JOptionPane.ERROR_MESSAGE);    
-		}
+		String format = tmp[tmp.length-1];
+		ImageIO.write(image, format, new File(out));  
 	}
 
 	public boolean undo() {
@@ -329,10 +317,14 @@ class fileChoice implements ActionListener {
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		int rv = fc.showOpenDialog(null);
+		int rv = fc.showOpenDialog(frame);
 
 		if (rv == JFileChooser.APPROVE_OPTION) {
-			pxl = new PixelSort(fc.getSelectedFile());
+			try {
+				pxl = new PixelSort(fc.getSelectedFile());
+			} catch(IOException ex) {
+				JOptionPane.showMessageDialog(frame, "Unsupported or damaged image!", "Image error", JOptionPane.ERROR_MESSAGE);    
+			}
 
 			if(pxl.getImage() != null) {
 				imageLabel = new scalableImage(new ImageIcon(pxl.getImage()));
@@ -454,17 +446,11 @@ class aboutDialog extends JDialog {
 	}
 }
 
-public class PxlSort {
-	public static void main(String[] args) {  
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch(Exception e) {}
-
-		final JFrame frame = new JFrame("PxlSort");
+class PixelSortGUI extends JFrame {
+	public PixelSortGUI() {
 		final ImageIcon loader = new ImageIcon("loader.gif");
 
-		frame.setLayout(new BorderLayout(5, 5));
+		setLayout(new BorderLayout(5, 5));
 
 		JMenuBar menu = new JMenuBar();
 
@@ -479,6 +465,8 @@ public class PxlSort {
 		hmAbout.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
 				JDialog about = new aboutDialog();
+
+				about.setLocationRelativeTo(getContentPane());
 				about.setVisible(true);
 			}
 		});
@@ -493,13 +481,13 @@ public class PxlSort {
 			public void actionPerformed(ActionEvent event) {
 				if(fileChoice.getSort() != null && fileChoice.getSort().getImage() != null) {
 					if(!fileChoice.getSort().undo()) 
-						JOptionPane.showMessageDialog(null, "Nothing to undo!", "Undo error", JOptionPane.ERROR_MESSAGE); 
+						JOptionPane.showMessageDialog(getContentPane(), "Nothing to undo!", "Undo error", JOptionPane.ERROR_MESSAGE); 
 					else {
-						frame.validate();
-						frame.repaint();
+						validate();
+						repaint();
 					}
 				} else {
-					JOptionPane.showMessageDialog(null, "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
+					JOptionPane.showMessageDialog(getContentPane(), "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
 				}
 			}
 		});
@@ -514,13 +502,13 @@ public class PxlSort {
 			public void actionPerformed(ActionEvent event) {
 				if(fileChoice.getSort() != null && fileChoice.getSort().getImage() != null) {
 					if(!fileChoice.getSort().redo()) 
-						JOptionPane.showMessageDialog(null, "Nothing to redo!", "Redo error", JOptionPane.ERROR_MESSAGE); 
+						JOptionPane.showMessageDialog(getContentPane(), "Nothing to redo!", "Redo error", JOptionPane.ERROR_MESSAGE); 
 					else {						
-						frame.validate();
-						frame.repaint();
+						validate();
+						repaint();
 					}
 				} else {
-					JOptionPane.showMessageDialog(null, "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
+					JOptionPane.showMessageDialog(getContentPane(), "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
 				}
 			}
 		});
@@ -547,7 +535,7 @@ public class PxlSort {
 		fmOpen.setMnemonic(KeyEvent.VK_O);
 		fmOpen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
 		fmOpen.setToolTipText("Open a new file");
-		fmOpen.addActionListener(new fileChoice(fc, frame));
+		fmOpen.addActionListener(new fileChoice(fc, this));
 
 		JMenuItem fmSave = new JMenuItem("Save");
 		fmSave.setMnemonic(KeyEvent.VK_S);
@@ -556,10 +544,14 @@ public class PxlSort {
 		fmSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
 				if(fileChoice.getSort() != null && fileChoice.getSort().getImage() != null) {
-					fileChoice.getSort().write();
-					frame.setTitle("PxlSort - " + fileChoice.getSort().getImageName());
+					try {
+						fileChoice.getSort().write();
+						setTitle("PxlSort - " + fileChoice.getSort().getImageName());
+					} catch(IOException e) {
+						JOptionPane.showMessageDialog(getContentPane(), "Unknown error ocurred while writing to file!", "Write error", JOptionPane.ERROR_MESSAGE); 
+					}
 				} else {
-					JOptionPane.showMessageDialog(null, "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
+					JOptionPane.showMessageDialog(getContentPane(), "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
 				}
 			}
 		});
@@ -570,15 +562,19 @@ public class PxlSort {
 		fmSaveAs.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
 				if(fileChoice.getSort() != null && fileChoice.getSort().getImage() != null) {
-					int rv = fc.showSaveDialog(frame);
+					int rv = fc.showSaveDialog(getContentPane());
 
 					if (rv == JFileChooser.APPROVE_OPTION) {
 						File file = fc.getSelectedFile();
-
-						fileChoice.getSort().write(file.getAbsolutePath());
+						
+						try {
+							fileChoice.getSort().write(file.getAbsolutePath());
+						} catch(IOException e) {
+							JOptionPane.showMessageDialog(getContentPane(), "Unknown error ocurred while writing to file!", "Write error", JOptionPane.ERROR_MESSAGE); 
+						}
 					}
 				} else {
-					JOptionPane.showMessageDialog(null, "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
+					JOptionPane.showMessageDialog(getContentPane(), "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
 				}
 			}
 		});
@@ -594,7 +590,7 @@ public class PxlSort {
 		menu.add(editMenu);
 		menu.add(helpMenu);
 
-		frame.setJMenuBar(menu);
+		setJMenuBar(menu);
 
 		JPanel south = new JPanel();
 		south.setLayout(new FlowLayout());
@@ -616,14 +612,14 @@ public class PxlSort {
 						public void run() {
 							fileChoice.getSort().randomize();
 
-							frame.validate();
-							frame.repaint();
+							validate();
+							repaint();
 
-							frame.setTitle("PxlSort - " + fileChoice.getSort().getImageName() + "*");
+							setTitle("PxlSort - " + fileChoice.getSort().getImageName() + "*");
 						}
 					}).start();
 				} else {
-					JOptionPane.showMessageDialog(null, "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
+					JOptionPane.showMessageDialog(getContentPane(), "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
 				}
 			}
 		});
@@ -637,13 +633,13 @@ public class PxlSort {
 						public void run() {
 							fileChoice.getSort().transpose();
 
-							frame.validate();
-							frame.repaint();
-							frame.setTitle("PxlSort - " + fileChoice.getSort().getImageName() + "*");
+							validate();
+							repaint();
+							setTitle("PxlSort - " + fileChoice.getSort().getImageName() + "*");
 						}
 					}).start();
 				} else {
-					JOptionPane.showMessageDialog(null, "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
+					JOptionPane.showMessageDialog(getContentPane(), "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
 				}
 			}
 		});
@@ -652,6 +648,8 @@ public class PxlSort {
 			public void actionPerformed(ActionEvent e) {
 				if(fileChoice.getSort() != null && fileChoice.getSort().getImage() != null) {
 					final JDialog sorter = new sortDialog();
+					
+					sorter.setLocationRelativeTo(getContentPane());
 					sorter.setVisible(true);
 
 					sorter.addWindowListener(new WindowAdapter() {
@@ -665,17 +663,17 @@ public class PxlSort {
 								public void run() {
 									fileChoice.getSort().sort(dir, by);
 
-									frame.validate();
-									frame.repaint();
+									validate();
+									repaint();
 
-									frame.setTitle("PxlSort - " + fileChoice.getSort().getImageName() + "*");
+									setTitle("PxlSort - " + fileChoice.getSort().getImageName() + "*");
 								}
 							}).start();
 						}
 					});
 
 				} else {
-					JOptionPane.showMessageDialog(null, "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
+					JOptionPane.showMessageDialog(getContentPane(), "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
 				}
 			}
 		});
@@ -686,11 +684,22 @@ public class PxlSort {
 		south.add(cTrans);
 
 
-		frame.add(south, BorderLayout.SOUTH);
+		add(south, BorderLayout.SOUTH);
 
-		frame.setSize(800, 600);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setSize(800, 600);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		frame.setVisible(true);
+		setVisible(true);
+	}
+}
+
+public class PxlSort {
+	public static void main(String[] args) {  
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}
+		catch(Exception e) {}
+
+		new PixelSortGUI();		
 	}
 }
