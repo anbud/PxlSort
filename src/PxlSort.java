@@ -41,7 +41,7 @@ class PixelSort {
 	private BufferedImage image;
 	private int dir;
 	private int by;
-	private final File file;
+	private File file;
 
 	private String imageName;
 	private String imagePath;
@@ -242,6 +242,21 @@ class PixelSort {
 			return false;
 		}
 	}
+	
+	public void resetImage(File input) throws IOException {
+		file = input;
+
+		imageName = input.getName();
+		imagePath = input.getAbsolutePath();
+
+		image = ImageIO.read(file);	
+
+		while(!stackUndo.empty())
+			stackUndo.pop();
+		
+		while(!stackRedo.empty())
+			stackRedo.pop();
+	}
 }
 
 class scalableImage extends JLabel {
@@ -321,7 +336,11 @@ class fileChoice implements ActionListener {
 
 		if (rv == JFileChooser.APPROVE_OPTION) {
 			try {
-				pxl = new PixelSort(fc.getSelectedFile());
+				if(pxl == null)
+					pxl = new PixelSort(fc.getSelectedFile());
+				else
+					pxl.resetImage(fc.getSelectedFile());
+				
 			} catch(IOException ex) {
 				JOptionPane.showMessageDialog(frame, "Unsupported or damaged image!", "Image error", JOptionPane.ERROR_MESSAGE);    
 			}
@@ -330,7 +349,7 @@ class fileChoice implements ActionListener {
 				imageLabel = new scalableImage(new ImageIcon(pxl.getImage()));
 
 				frame.add(imageLabel);
-				frame.setTitle("PxlSort - " + fc.getSelectedFile().getName() + "*");
+				frame.setTitle("PxlSort - " + fc.getSelectedFile().getName());
 			} else
 				JOptionPane.showMessageDialog(frame, "Unsupported or damaged image!", "Image error", JOptionPane.ERROR_MESSAGE);    
 
@@ -447,7 +466,9 @@ class aboutDialog extends JDialog {
 }
 
 class PixelSortGUI extends JFrame {
-	public PixelSortGUI() {
+	private boolean saved = true;
+	
+	public PixelSortGUI() {		
 		final ImageIcon loader = new ImageIcon("loader.gif");
 
 		setLayout(new BorderLayout(5, 5));
@@ -520,16 +541,13 @@ class PixelSortGUI extends JFrame {
 		fmExit.setToolTipText("Exit application");
 		fmExit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
-				System.exit(0);
+				dispose();
 			}
 		});
 
 		final JFileChooser fc = new JFileChooser();
 		fc.setDragEnabled(true);
-		fc.setFileFilter(new FileNameExtensionFilter("BMP images", "bmp"));
-		fc.addChoosableFileFilter(new FileNameExtensionFilter("PNG images", "png"));
-		fc.addChoosableFileFilter(new FileNameExtensionFilter("JPG images", "jpg", "jpeg"));
-		fc.addChoosableFileFilter(new FileNameExtensionFilter("GIF images", "gif"));
+		fc.setFileFilter(new FileNameExtensionFilter("Supported images", "bmp", "png", "jpg", "jpeg", "gif"));
 
 		JMenuItem fmOpen = new JMenuItem("Open");
 		fmOpen.setMnemonic(KeyEvent.VK_O);
@@ -547,8 +565,10 @@ class PixelSortGUI extends JFrame {
 					try {
 						fileChoice.getSort().write();
 						setTitle("PxlSort - " + fileChoice.getSort().getImageName());
+						saved = true;
 					} catch(IOException e) {
 						JOptionPane.showMessageDialog(getContentPane(), "Unknown error ocurred while writing to file!", "Write error", JOptionPane.ERROR_MESSAGE); 
+						saved = false;
 					}
 				} else {
 					JOptionPane.showMessageDialog(getContentPane(), "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
@@ -569,8 +589,10 @@ class PixelSortGUI extends JFrame {
 						
 						try {
 							fileChoice.getSort().write(file.getAbsolutePath());
+							saved = true;
 						} catch(IOException e) {
 							JOptionPane.showMessageDialog(getContentPane(), "Unknown error ocurred while writing to file!", "Write error", JOptionPane.ERROR_MESSAGE); 
+							saved = false;
 						}
 					}
 				} else {
@@ -614,6 +636,8 @@ class PixelSortGUI extends JFrame {
 
 							validate();
 							repaint();
+							
+							saved = false;
 
 							setTitle("PxlSort - " + fileChoice.getSort().getImageName() + "*");
 						}
@@ -635,6 +659,9 @@ class PixelSortGUI extends JFrame {
 
 							validate();
 							repaint();
+							
+							saved = false;
+							
 							setTitle("PxlSort - " + fileChoice.getSort().getImageName() + "*");
 						}
 					}).start();
@@ -665,6 +692,8 @@ class PixelSortGUI extends JFrame {
 
 									validate();
 									repaint();
+									
+									saved = false;
 
 									setTitle("PxlSort - " + fileChoice.getSort().getImageName() + "*");
 								}
@@ -685,10 +714,24 @@ class PixelSortGUI extends JFrame {
 
 
 		add(south, BorderLayout.SOUTH);
+		
+		addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				if(!saved && fileChoice.getSort() != null) {
+					int c = JOptionPane.showConfirmDialog(getContentPane(), "You have unsaved changes! Are sure you want to exit?", "Exit", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
+					
+					if(c == JOptionPane.YES_OPTION)
+						System.exit(0);
+				} else 
+					System.exit(0);
+			}
+		});
 
 		setSize(800, 600);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
+		setTitle("PxlSort");
+		
 		setVisible(true);
 	}
 }
