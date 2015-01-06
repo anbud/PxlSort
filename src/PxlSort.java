@@ -1,7 +1,7 @@
 /*
  *  PxlSort 0.3.7
  * 
- *  Copyright (C) 2014 - Andrej Budinčević
+ *  Copyright (C) 2014-2015 - Andrej Budinčević
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -37,16 +37,17 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-abstract class info {
-	public static String NAME = "PxlSort";
-	public static String VERSION = "0.3.7";
+interface info {
+	String NAME = "PxlSort";
+	String VERSION = "0.3.7";
 }
 
 class PixelSort {
 	private BufferedImage image;
+	private File file;
+
 	private int dir;
 	private int by;
-	private File file;
 
 	private Stack<BufferedImage> stackUndo = new Stack<BufferedImage>();
 	private Stack<BufferedImage> stackRedo = new Stack<BufferedImage>();
@@ -80,58 +81,58 @@ class PixelSort {
 		WritableRaster raster = bi.copyData(null);
 		return new BufferedImage(cm, raster, isAlphaPremultiplied, null);
 	}
-	
+
 	public void radix(int t) {
 		int h = (dir == 2 ? image.getWidth() : image.getHeight());
-		
-	    for (int s = Byte.SIZE - 1; s > -1; s--) {
-	    	byte tmp[] = new byte[h];
-	    	int indices[] = new int[h];
 
-	    	int j = 0;	
+		for (int s = Byte.SIZE - 1; s > -1; s--) {
+			byte tmp[] = new byte[h];
+			int indices[] = new int[h];
 
-	        for (int i = 0; i < h; i++) {
-	        	byte value;
-	        	
-	        	if(by == 1)
-	        		value = (byte) (((dir == 1 ? image.getRGB(t, i) : image.getRGB(i, t)) & 0x00ff0000) >> 16);
-	        	else if(by == 2)
-	        		value = (byte) (((dir == 1 ? image.getRGB(t, i) : image.getRGB(i, t)) & 0x0000ff00) >> 8);
-	        	else 
-	        		value = (byte) (((dir == 1 ? image.getRGB(t, i) : image.getRGB(i, t)) & 0x000000ff));
-	        	
-	            boolean move = value << s >= 0;
-	 
-	            if (s == 0 ? !move : move) {
-	            	indices[j] = (dir == 1 ? image.getRGB(t, i) : image.getRGB(i, t));
-	                tmp[j++] = value;
-	            } else {
-	            	if(dir == 1)
-	            		image.setRGB(t, i-j, image.getRGB(t, i));
-	            	else if(dir == 2)
-	            		image.setRGB(i-j, t, image.getRGB(i, t));
-	            }
-	        }
-	 
-	        for (int i = j; i < tmp.length; i++) {
-	        	if(by == 1)
-	        		tmp[j] = (byte) (((dir == 1 ? image.getRGB(t, i-j) : image.getRGB(i-j, t)) & 0x00ff0000) >> 16);
-	        	else if(by == 2)
-	        		tmp[j] = (byte) (((dir == 1 ? image.getRGB(t, i-j) : image.getRGB(i-j, t)) & 0x0000ff00) >> 8);
-	        	else 
-	        		tmp[j] = (byte) (((dir == 1 ? image.getRGB(t, i-j) : image.getRGB(i-j, t)) & 0x000000ff));
-	        	
-	        	indices[i] = (dir == 1 ? image.getRGB(t, i-j) : image.getRGB(i-j, t));	        
-	        } 	
-	       
-	        
-	        for(int i = 0; i < tmp.length; i++) {
-	        	if(dir == 1) {
-            		image.setRGB(t, i, indices[i]);
-	        	} else if(dir == 2)
-            		image.setRGB(i, t, indices[i]);
-	        }
-	    }
+			int j = 0;	
+
+			for (int i = 0; i < h; i++) {
+				byte value;
+
+				if(by == 1)
+					value = (byte) (((dir == 1 ? image.getRGB(t, i) : image.getRGB(i, t)) & 0x00ff0000) >> 16);
+				else if(by == 2)
+					value = (byte) (((dir == 1 ? image.getRGB(t, i) : image.getRGB(i, t)) & 0x0000ff00) >> 8);
+				else 
+					value = (byte) (((dir == 1 ? image.getRGB(t, i) : image.getRGB(i, t)) & 0x000000ff));
+
+				boolean move = value << s >= 0;
+
+				if (s == 0 ? !move : move) {
+					indices[j] = (dir == 1 ? image.getRGB(t, i) : image.getRGB(i, t));
+					tmp[j++] = value;
+				} else {
+					if(dir == 1)
+						image.setRGB(t, i-j, image.getRGB(t, i));
+					else if(dir == 2)
+						image.setRGB(i-j, t, image.getRGB(i, t));
+				}
+			}
+
+			for (int i = j; i < tmp.length; i++) {
+				if(by == 1)
+					tmp[j] = (byte) (((dir == 1 ? image.getRGB(t, i-j) : image.getRGB(i-j, t)) & 0x00ff0000) >> 16);
+				else if(by == 2)
+					tmp[j] = (byte) (((dir == 1 ? image.getRGB(t, i-j) : image.getRGB(i-j, t)) & 0x0000ff00) >> 8);
+				else 
+					tmp[j] = (byte) (((dir == 1 ? image.getRGB(t, i-j) : image.getRGB(i-j, t)) & 0x000000ff));
+
+				indices[i] = (dir == 1 ? image.getRGB(t, i-j) : image.getRGB(i-j, t));	        
+			} 	
+
+
+			for(int i = 0; i < tmp.length; i++) {
+				if(dir == 1) 
+					image.setRGB(t, i, indices[i]);
+				else if(dir == 2)
+					image.setRGB(i, t, indices[i]);
+			}
+		}
 	}
 
 
@@ -143,9 +144,8 @@ class PixelSort {
 
 		int lim = (this.dir == 2 ? image.getHeight() : image.getWidth());
 
-		for(int i = 0; i < lim; i++) {
+		for(int i = 0; i < lim; i++) 
 			radix(i);		
-		}
 	}
 
 	public void transpose() {	
@@ -156,20 +156,20 @@ class PixelSort {
 
 		for (int i = 0; i < w; i++) {
 			for (int j = i; j < h; j++) {
-				int tmp1 = image.getRGB(i, j);
+				int tmp = image.getRGB(i, j);
 				image.setRGB(i, j, image.getRGB(j, i));
-				image.setRGB(j, i, tmp1);
+				image.setRGB(j, i, tmp);
 			}
 		}
 	}
 
-	public void randomize() {
+	public void randomize(int lim) {
 		stackUndo.push(deepCopy(image));
 
 		int h = image.getHeight();
 		int w = image.getWidth();
 
-		for (int i = 0; i < w*h/2; i++) {
+		for (int i = 0; i < lim; i++) {
 			Random rnd = new Random();
 
 			int rndX = rnd.nextInt(w);
@@ -178,9 +178,9 @@ class PixelSort {
 			int rndX1 = rnd.nextInt(w);
 			int rndY1 = rnd.nextInt(h);
 
-			int tmp1 = image.getRGB(rndX, rndY);
+			int tmp = image.getRGB(rndX, rndY);
 			image.setRGB(rndX, rndY, image.getRGB(rndX1, rndY1));
-			image.setRGB(rndX1, rndY1, tmp1);
+			image.setRGB(rndX1, rndY1, tmp);
 		}
 	}
 
@@ -231,7 +231,7 @@ class PixelSort {
 			return false;
 		}
 	}
-	
+
 	public void resetImage(File input) throws IOException {
 		file = input;
 
@@ -239,7 +239,7 @@ class PixelSort {
 
 		while(!stackUndo.empty())
 			stackUndo.pop();
-		
+
 		while(!stackRedo.empty())
 			stackRedo.pop();
 	}
@@ -247,7 +247,7 @@ class PixelSort {
 
 class scalableImage extends JLabel {
 	private static final long serialVersionUID = -7834609287406439489L;
-	
+
 	private Image image;
 
 	public scalableImage(ImageIcon image) {
@@ -326,7 +326,7 @@ class sortDialog extends JDialog {
 		final JRadioButton hor = new JRadioButton("Horizontal", true);
 		final JRadioButton ver = new JRadioButton("Vertical");
 		final JRadioButton diag = new JRadioButton("Diagonal");
-		
+
 		/* Diagonal sorting is not functional yet */
 		diag.setEnabled(false);
 
@@ -405,14 +405,53 @@ class aboutDialog extends JDialog {
 	}
 }
 
+class randDialog extends JDialog {
+	private static final long serialVersionUID = -1629330603619813780L;
+	private int value;
+
+	public int getValue() {
+		return value;
+	}
+
+	public randDialog(int max) {
+		final JSlider slide = new JSlider(JSlider.HORIZONTAL, 0, max, max/2);
+
+		slide.setMajorTickSpacing(10);
+		slide.setMinorTickSpacing(1);
+
+		final JButton ok = new JButton("OK");		
+
+		ok.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				value = slide.getValue();
+
+				dispose();
+			}
+		});
+
+		TitledBorder sliderTitle = BorderFactory.createTitledBorder("Amount of randomization");
+		slide.setBorder(sliderTitle);
+
+		add(slide);
+
+		add(ok, BorderLayout.SOUTH);
+
+		setTitle(info.NAME + " - Randomization");
+
+		setSize(250, 120);
+		setVisible(true);
+	}
+}
+
 class PixelSortGUI extends JFrame {
 	private static final long serialVersionUID = -9127474621378199941L;
-	
+
 	private boolean saved = true;
+	
 	private PixelSort pxl;
-	
+
 	private JLabel imageLabel;
-	
+
 	private class fileChoice implements ActionListener {
 		private JFileChooser fc;
 
@@ -429,7 +468,7 @@ class PixelSortGUI extends JFrame {
 						pxl = new PixelSort(fc.getSelectedFile());
 					else
 						pxl.resetImage(fc.getSelectedFile());
-					
+
 				} catch(IOException ex) {
 					JOptionPane.showMessageDialog(getContentPane(), "Unsupported or damaged image!", "Image error", JOptionPane.ERROR_MESSAGE);    
 				}
@@ -441,21 +480,19 @@ class PixelSortGUI extends JFrame {
 						remove(imageLabel);
 						imageLabel = new scalableImage(new ImageIcon(pxl.getImage()));	
 					}
-					
+
 					add(imageLabel);
 					setTitle(info.NAME + " - " + fc.getSelectedFile().getName());
 				} else
 					JOptionPane.showMessageDialog(getContentPane(), "Unsupported or damaged image!", "Image error", JOptionPane.ERROR_MESSAGE);    
-				
+
 				validate();
 				repaint();
-			} else {
-				pxl = null;
 			}
 		}
 	}
 
-	
+
 	public PixelSortGUI() {		
 		final ImageIcon loader = new ImageIcon("loader.gif");
 
@@ -574,7 +611,7 @@ class PixelSortGUI extends JFrame {
 
 					if (rv == JFileChooser.APPROVE_OPTION) {
 						File file = fc.getSelectedFile();
-						
+
 						try {
 							pxl.write(file.getAbsolutePath());
 							saved = true;
@@ -616,18 +653,29 @@ class PixelSortGUI extends JFrame {
 		cRand.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if(pxl != null && pxl.getImage() != null) {
-					imageLabel.setIcon(loader);
+					final JDialog rand = new randDialog(pxl.getImage().getWidth()*pxl.getImage().getHeight());
 
-					EventQueue.invokeLater(new Runnable() {
-						public void run() {
-							pxl.randomize();
+					rand.setLocationRelativeTo(getContentPane());
+					rand.setVisible(true);
 
-							validate();
-							repaint();
-							
-							saved = false;
+					rand.addWindowListener(new WindowAdapter() {
+						public void windowClosed(WindowEvent e) {	
+							imageLabel.setIcon(loader);
 
-							setTitle(info.NAME + " - " + pxl.getImageName() + "*");
+							final int value = ((randDialog) rand).getValue();
+
+							new Thread(new Runnable() {
+								public void run() {
+									pxl.randomize(value);
+
+									validate();
+									repaint();
+
+									saved = false;
+
+									setTitle(info.NAME + " - " + pxl.getImageName() + "*");
+								}
+							}).start();
 						}
 					});
 				} else {
@@ -641,18 +689,18 @@ class PixelSortGUI extends JFrame {
 				if(pxl != null && pxl.getImage() != null) {
 					imageLabel.setIcon(loader);
 
-					EventQueue.invokeLater(new Runnable() {
+					new Thread(new Runnable() {
 						public void run() {
 							pxl.transpose();
 
 							validate();
 							repaint();
-							
+
 							saved = false;
-							
+
 							setTitle(info.NAME + " - " + pxl.getImageName() + "*");
 						}
-					});
+					}).start();
 				} else {
 					JOptionPane.showMessageDialog(getContentPane(), "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
 				}
@@ -663,7 +711,7 @@ class PixelSortGUI extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				if(pxl != null && pxl.getImage() != null) {
 					final JDialog sorter = new sortDialog();
-					
+
 					sorter.setLocationRelativeTo(getContentPane());
 					sorter.setVisible(true);
 
@@ -674,18 +722,18 @@ class PixelSortGUI extends JFrame {
 							final int by = ((sortDialog) sorter).getBy();
 							final int dir = ((sortDialog) sorter).getDir();
 
-							EventQueue.invokeLater(new Runnable() {
+							new Thread(new Runnable() {
 								public void run() {
 									pxl.sort(dir, by);
 
 									validate();
 									repaint();
-									
+
 									saved = false;
 
 									setTitle(info.NAME + " - " + pxl.getImageName() + "*");
 								}
-							});
+							}).start();
 						}
 					});
 
@@ -702,12 +750,12 @@ class PixelSortGUI extends JFrame {
 
 
 		add(south, BorderLayout.SOUTH);
-		
+
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				if(!saved && pxl != null) {
 					int c = JOptionPane.showConfirmDialog(getContentPane(), "You have unsaved changes! Are sure you want to exit?", "Exit", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
-					
+
 					if(c == JOptionPane.YES_OPTION)
 						System.exit(0);
 				} else 
@@ -719,7 +767,7 @@ class PixelSortGUI extends JFrame {
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
 		setTitle(info.NAME);
-		
+
 		setVisible(true);
 	}
 }
