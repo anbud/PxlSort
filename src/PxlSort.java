@@ -1,5 +1,5 @@
 /*
- *  PxlSort 0.3.7
+ *  PxlSort 0.4.1
  * 
  *  Copyright (C) 2014-2015 - Andrej Budinčević
  *
@@ -39,7 +39,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 interface info {
 	String NAME = "PxlSort";
-	String VERSION = "0.3.7";
+	String VERSION = "0.4.1";
+	int ANIM_SPEED = 10;
 }
 
 class PixelSort {
@@ -255,29 +256,16 @@ class scalableImage extends JLabel {
 		this.image = image.getImage();
 	}
 
-	public void setIcon(ImageIcon image) {
-		this.image = image.getImage();
-		super.setIcon(image);
-	}	
-
-	public double getScaleFactor(int iMasterSize, int iTargetSize) {
-		double dScale = 1;
-		if (iMasterSize > iTargetSize) 
-			dScale = (double) iTargetSize / (double) iMasterSize;
-		else 
-			dScale = (double) iTargetSize / (double) iMasterSize;
-
-		return dScale;
+	public double getScaleFactor(int masterSize, int targetSize) {
+		return (double) targetSize/(double) masterSize;
 
 	}
 
 	public double getScaleFactorToFill(Dimension masterSize, Dimension targetSize) {
-		double dScaleWidth = getScaleFactor(masterSize.width, targetSize.width);
-		double dScaleHeight = getScaleFactor(masterSize.height, targetSize.height);
+		double scaleWidth = getScaleFactor(masterSize.width, targetSize.width);
+		double scaleHeight = getScaleFactor(masterSize.height, targetSize.height);
 
-		double dScale = Math.max(dScaleHeight, dScaleWidth);
-
-		return dScale;
+		return Math.max(scaleHeight, scaleWidth);
 	}
 
 	@Override
@@ -447,7 +435,7 @@ class PixelSortGUI extends JFrame {
 	private static final long serialVersionUID = -9127474621378199941L;
 
 	private boolean saved = true;
-	
+
 	private PixelSort pxl;
 
 	private JLabel imageLabel;
@@ -494,9 +482,13 @@ class PixelSortGUI extends JFrame {
 
 
 	public PixelSortGUI() {		
-		final ImageIcon loader = new ImageIcon("loader.gif");
-
 		setLayout(new BorderLayout(5, 5));
+
+		final Timer time = new Timer(info.ANIM_SPEED, new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				repaint();
+			}
+		});
 
 		JMenuBar menu = new JMenuBar();
 
@@ -526,12 +518,20 @@ class PixelSortGUI extends JFrame {
 		emUndo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
 				if(pxl != null && pxl.getImage() != null) {
-					if(!pxl.undo()) 
-						JOptionPane.showMessageDialog(getContentPane(), "Nothing to undo!", "Undo error", JOptionPane.ERROR_MESSAGE); 
-					else {
-						validate();
-						repaint();
-					}
+					new Thread(new Runnable() {
+						public void run() {
+							time.start();
+
+							if(!pxl.undo()) 
+								JOptionPane.showMessageDialog(getContentPane(), "Nothing to undo!", "Undo error", JOptionPane.ERROR_MESSAGE); 
+							else {						
+								validate();
+								repaint();
+							}
+
+							time.stop();
+						}
+					}).start();
 				} else {
 					JOptionPane.showMessageDialog(getContentPane(), "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
 				}
@@ -547,12 +547,20 @@ class PixelSortGUI extends JFrame {
 		emRedo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
 				if(pxl != null && pxl.getImage() != null) {
-					if(!pxl.redo()) 
-						JOptionPane.showMessageDialog(getContentPane(), "Nothing to redo!", "Redo error", JOptionPane.ERROR_MESSAGE); 
-					else {						
-						validate();
-						repaint();
-					}
+					new Thread(new Runnable() {
+						public void run() {
+							time.start();
+
+							if(!pxl.redo()) 
+								JOptionPane.showMessageDialog(getContentPane(), "Nothing to redo!", "Redo error", JOptionPane.ERROR_MESSAGE); 
+							else {						
+								validate();
+								repaint();
+							}
+
+							time.stop();
+						}
+					}).start();
 				} else {
 					JOptionPane.showMessageDialog(getContentPane(), "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
 				}
@@ -566,7 +574,7 @@ class PixelSortGUI extends JFrame {
 		fmExit.setToolTipText("Exit application");
 		fmExit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
-				dispose();
+				System.exit(0);
 			}
 		});
 
@@ -660,13 +668,15 @@ class PixelSortGUI extends JFrame {
 
 					rand.addWindowListener(new WindowAdapter() {
 						public void windowClosed(WindowEvent e) {	
-							imageLabel.setIcon(loader);
-
 							final int value = ((randDialog) rand).getValue();
 
 							new Thread(new Runnable() {
 								public void run() {
+									time.start();
+
 									pxl.randomize(value);
+
+									time.stop();
 
 									validate();
 									repaint();
@@ -687,11 +697,13 @@ class PixelSortGUI extends JFrame {
 		cTrans.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if(pxl != null && pxl.getImage() != null) {
-					imageLabel.setIcon(loader);
-
 					new Thread(new Runnable() {
 						public void run() {
+							time.start();
+
 							pxl.transpose();
+
+							time.stop();
 
 							validate();
 							repaint();
@@ -717,14 +729,16 @@ class PixelSortGUI extends JFrame {
 
 					sorter.addWindowListener(new WindowAdapter() {
 						public void windowClosed(WindowEvent e) {	
-							imageLabel.setIcon(loader);
-
 							final int by = ((sortDialog) sorter).getBy();
 							final int dir = ((sortDialog) sorter).getDir();
 
 							new Thread(new Runnable() {
 								public void run() {
+									time.start();
+
 									pxl.sort(dir, by);
+
+									time.stop();
 
 									validate();
 									repaint();
