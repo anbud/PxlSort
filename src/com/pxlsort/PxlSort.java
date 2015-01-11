@@ -84,11 +84,11 @@ public class PxlSort {
 				byte value;
 
 				if(by == 1)
-					value = (byte) (((dir == 1 ? image.getRGB(t, i) : image.getRGB(i, t)) & 0x00ff0000) >> 16);
+					value = (byte) (((dir == 1 ? image.getRGB(t, i) : image.getRGB(i, t)) & 0x00ff0000) >> 16 - 128);
 				else if(by == 2)
-					value = (byte) (((dir == 1 ? image.getRGB(t, i) : image.getRGB(i, t)) & 0x0000ff00) >> 8);
+					value = (byte) (((dir == 1 ? image.getRGB(t, i) : image.getRGB(i, t)) & 0x0000ff00) >> 8 - 128);
 				else 
-					value = (byte) (((dir == 1 ? image.getRGB(t, i) : image.getRGB(i, t)) & 0x000000ff));
+					value = (byte) (((dir == 1 ? image.getRGB(t, i) : image.getRGB(i, t)) & 0x000000ff) - 128);
 
 				boolean move = value << s >= 0;
 
@@ -105,11 +105,11 @@ public class PxlSort {
 
 			for (int i = j; i < tmp.length; i++) {
 				if(by == 1)
-					tmp[j] = (byte) (((dir == 1 ? image.getRGB(t, i-j) : image.getRGB(i-j, t)) & 0x00ff0000) >> 16);
+					tmp[j] = (byte) (((dir == 1 ? image.getRGB(t, i-j) : image.getRGB(i-j, t)) & 0x00ff0000) >> 16 - 128);
 				else if(by == 2)
-					tmp[j] = (byte) (((dir == 1 ? image.getRGB(t, i-j) : image.getRGB(i-j, t)) & 0x0000ff00) >> 8);
+					tmp[j] = (byte) (((dir == 1 ? image.getRGB(t, i-j) : image.getRGB(i-j, t)) & 0x0000ff00) >> 8 - 128);
 				else 
-					tmp[j] = (byte) (((dir == 1 ? image.getRGB(t, i-j) : image.getRGB(i-j, t)) & 0x000000ff));
+					tmp[j] = (byte) (((dir == 1 ? image.getRGB(t, i-j) : image.getRGB(i-j, t)) & 0x000000ff) - 128);
 
 				indices[i] = (dir == 1 ? image.getRGB(t, i-j) : image.getRGB(i-j, t));	        
 			} 	

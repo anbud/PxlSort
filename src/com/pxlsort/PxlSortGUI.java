@@ -53,16 +53,12 @@ public class PxlSortGUI extends JFrame {
 	private PxlSort pxl;
 
 	private JLabel imageLabel;
+	private final JFrame myRef = this;
+	private final JFileChooser fc;
 
 	private class fileChoice implements ActionListener {
-		private JFileChooser fc;
-
-		public fileChoice(JFileChooser fc) {
-			this.fc = fc;
-		}
-
 		public void actionPerformed(ActionEvent e) {
-			int rv = fc.showOpenDialog(getContentPane());
+			int rv = fc.showOpenDialog(myRef);
 
 			if (rv == JFileChooser.APPROVE_OPTION) {
 				try {
@@ -72,13 +68,13 @@ public class PxlSortGUI extends JFrame {
 						pxl.resetImage(fc.getSelectedFile());
 
 				} catch(IOException ex) {
-					JOptionPane.showMessageDialog(getContentPane(), "Unsupported or damaged image!", "Image error", JOptionPane.ERROR_MESSAGE);    
+					JOptionPane.showMessageDialog(myRef, "Unsupported or damaged image!", "Image error", JOptionPane.ERROR_MESSAGE);    
 				}
 
 				if(pxl.getImage() != null) {
-					if(imageLabel == null) {
+					if(imageLabel == null) 
 						imageLabel = new ScalableImage(new ImageIcon(pxl.getImage()));						
-					} else {
+					else {
 						remove(imageLabel);
 						imageLabel = new ScalableImage(new ImageIcon(pxl.getImage()));	
 					}
@@ -86,7 +82,7 @@ public class PxlSortGUI extends JFrame {
 					add(imageLabel);
 					setTitle(Info.NAME + " - " + fc.getSelectedFile().getName());
 				} else
-					JOptionPane.showMessageDialog(getContentPane(), "Unsupported or damaged image!", "Image error", JOptionPane.ERROR_MESSAGE);    
+					JOptionPane.showMessageDialog(myRef, "Unsupported or damaged image!", "Image error", JOptionPane.ERROR_MESSAGE);    
 
 				validate();
 				repaint();
@@ -118,7 +114,7 @@ public class PxlSortGUI extends JFrame {
 			public void actionPerformed(ActionEvent event) {
 				JDialog about = new AboutDialog();
 
-				about.setLocationRelativeTo(getContentPane());
+				about.setLocationRelativeTo(myRef);
 				about.setVisible(true);
 			}
 		});
@@ -137,17 +133,15 @@ public class PxlSortGUI extends JFrame {
 							time.start();
 
 							if(!pxl.undo()) 
-								JOptionPane.showMessageDialog(getContentPane(), "Nothing to undo!", "Undo error", JOptionPane.ERROR_MESSAGE); 
-							else {						
-								validate();
+								JOptionPane.showMessageDialog(myRef, "Nothing to undo!", "Warning", JOptionPane.WARNING_MESSAGE); 
+							else
 								repaint();
-							}
 
 							time.stop();
 						}
 					}).start();
 				} else {
-					JOptionPane.showMessageDialog(getContentPane(), "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
+					JOptionPane.showMessageDialog(myRef, "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
 				}
 			}
 		});
@@ -166,17 +160,15 @@ public class PxlSortGUI extends JFrame {
 							time.start();
 
 							if(!pxl.redo()) 
-								JOptionPane.showMessageDialog(getContentPane(), "Nothing to redo!", "Redo error", JOptionPane.ERROR_MESSAGE); 
-							else {						
-								validate();
+								JOptionPane.showMessageDialog(myRef, "Nothing to redo!", "Warning", JOptionPane.WARNING_MESSAGE); 
+							else 
 								repaint();
-							}
 
 							time.stop();
 						}
 					}).start();
 				} else {
-					JOptionPane.showMessageDialog(getContentPane(), "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
+					JOptionPane.showMessageDialog(myRef, "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
 				}
 			}
 		});
@@ -192,7 +184,7 @@ public class PxlSortGUI extends JFrame {
 			}
 		});
 
-		final JFileChooser fc = new JFileChooser();
+		fc = new JFileChooser();
 		fc.setDragEnabled(true);
 		fc.setFileFilter(new FileNameExtensionFilter("Supported images", "bmp", "png", "jpg", "jpeg", "gif"));
 
@@ -200,7 +192,7 @@ public class PxlSortGUI extends JFrame {
 		fmOpen.setMnemonic(KeyEvent.VK_O);
 		fmOpen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
 		fmOpen.setToolTipText("Open a new file");
-		fmOpen.addActionListener(new fileChoice(fc));
+		fmOpen.addActionListener(new fileChoice());
 
 		JMenuItem fmSave = new JMenuItem("Save");
 		fmSave.setMnemonic(KeyEvent.VK_S);
@@ -212,13 +204,15 @@ public class PxlSortGUI extends JFrame {
 					try {
 						pxl.write();
 						setTitle(Info.NAME + " - " + pxl.getImageName());
+						
 						saved = true;
 					} catch(IOException e) {
-						JOptionPane.showMessageDialog(getContentPane(), "Unknown error ocurred while writing to file!", "Write error", JOptionPane.ERROR_MESSAGE); 
+						JOptionPane.showMessageDialog(myRef, "Unknown error ocurred while writing to file!", "Write error", JOptionPane.ERROR_MESSAGE); 
+						
 						saved = false;
 					}
 				} else {
-					JOptionPane.showMessageDialog(getContentPane(), "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
+					JOptionPane.showMessageDialog(myRef, "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
 				}
 			}
 		});
@@ -229,21 +223,23 @@ public class PxlSortGUI extends JFrame {
 		fmSaveAs.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
 				if(pxl != null && pxl.getImage() != null) {
-					int rv = fc.showSaveDialog(getContentPane());
+					int rv = fc.showSaveDialog(myRef);
 
 					if (rv == JFileChooser.APPROVE_OPTION) {
 						File file = fc.getSelectedFile();
 
 						try {
 							pxl.write(file.getAbsolutePath());
+							
 							saved = true;
 						} catch(IOException e) {
-							JOptionPane.showMessageDialog(getContentPane(), "Unknown error ocurred while writing to file!", "Write error", JOptionPane.ERROR_MESSAGE); 
+							JOptionPane.showMessageDialog(myRef, "Unknown error ocurred while writing to file!", "Write error", JOptionPane.ERROR_MESSAGE); 
+							
 							saved = false;
 						}
 					}
 				} else {
-					JOptionPane.showMessageDialog(getContentPane(), "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
+					JOptionPane.showMessageDialog(myRef, "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
 				}
 			}
 		});
@@ -277,7 +273,7 @@ public class PxlSortGUI extends JFrame {
 				if(pxl != null && pxl.getImage() != null) {
 					final JDialog rand = new RandDialog(pxl.getImage().getWidth()*pxl.getImage().getHeight());
 
-					rand.setLocationRelativeTo(getContentPane());
+					rand.setLocationRelativeTo(myRef);
 					rand.setVisible(true);
 
 					rand.addWindowListener(new WindowAdapter() {
@@ -292,7 +288,6 @@ public class PxlSortGUI extends JFrame {
 
 									time.stop();
 
-									validate();
 									repaint();
 
 									saved = false;
@@ -303,7 +298,7 @@ public class PxlSortGUI extends JFrame {
 						}
 					});
 				} else {
-					JOptionPane.showMessageDialog(getContentPane(), "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
+					JOptionPane.showMessageDialog(myRef, "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
 				}
 			}
 		});
@@ -319,7 +314,6 @@ public class PxlSortGUI extends JFrame {
 
 							time.stop();
 
-							validate();
 							repaint();
 
 							saved = false;
@@ -328,7 +322,7 @@ public class PxlSortGUI extends JFrame {
 						}
 					}).start();
 				} else {
-					JOptionPane.showMessageDialog(getContentPane(), "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
+					JOptionPane.showMessageDialog(myRef, "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
 				}
 			}
 		});
@@ -338,7 +332,7 @@ public class PxlSortGUI extends JFrame {
 				if(pxl != null && pxl.getImage() != null) {
 					final JDialog sorter = new SortDialog();
 
-					sorter.setLocationRelativeTo(getContentPane());
+					sorter.setLocationRelativeTo(myRef);
 					sorter.setVisible(true);
 
 					sorter.addWindowListener(new WindowAdapter() {
@@ -354,7 +348,6 @@ public class PxlSortGUI extends JFrame {
 
 									time.stop();
 
-									validate();
 									repaint();
 
 									saved = false;
@@ -366,7 +359,7 @@ public class PxlSortGUI extends JFrame {
 					});
 
 				} else {
-					JOptionPane.showMessageDialog(getContentPane(), "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
+					JOptionPane.showMessageDialog(myRef, "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
 				}
 			}
 		});
@@ -382,7 +375,7 @@ public class PxlSortGUI extends JFrame {
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				if(!saved && pxl != null) {
-					int c = JOptionPane.showConfirmDialog(getContentPane(), "You have unsaved changes! Are sure you want to exit?", "Exit", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
+					int c = JOptionPane.showConfirmDialog(myRef, "You have unsaved changes! Are sure you want to exit?", "Exit", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
 
 					if(c == JOptionPane.YES_OPTION)
 						System.exit(0);
@@ -395,6 +388,8 @@ public class PxlSortGUI extends JFrame {
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
 		setTitle(Info.NAME);
+		
+		setIconImage(new ImageIcon("pxlicon.png").getImage());
 
 		setVisible(true);
 	}
