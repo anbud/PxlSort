@@ -173,18 +173,15 @@ public class PxlSort {
 		}
 	}
 
-	public void write() throws IOException {          
-		String tmp[] = file.getAbsolutePath().split("\\.");
-
-		String format = tmp[tmp.length-1];
-		ImageIO.write(image, format, new File(file.getAbsolutePath()));    
-	}
-
 	public void write(String out) throws IOException {
 		String tmp[] = out.split("\\.");
 
 		String format = tmp[tmp.length-1];
 		ImageIO.write(image, format, new File(out));  
+	}	
+
+	public void write() throws IOException {          
+		write(file.getAbsolutePath());
 	}
 
 	public boolean undo() {
