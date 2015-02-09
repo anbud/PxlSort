@@ -8,6 +8,8 @@ Also, pixels can be sorted by their color values. They can be sorted by the amou
 
 Apart from pixel sorting, PxlSort can also **randomize** pixels in a given image and it can also **transpose** the given matrix.
 
+If you wish to know more about the implementation, read my blog post about it here: [Pixel sorting - Introduction to glitch art](http://zx.rs/1/Pixel-sorting---Introduction-to-glitch-art/).
+
 
 Usage
 -----
