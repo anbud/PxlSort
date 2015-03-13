@@ -1,5 +1,5 @@
 /*
- *  PxlSort 0.4.1
+ *  PxlSort 0.7.2
  * 
  *  Copyright (C) 2014-2015 - Andrej Budinčević
  *

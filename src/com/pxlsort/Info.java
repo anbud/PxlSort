@@ -1,5 +1,5 @@
 /*
- *  PxlSort 0.4.1
+ *  PxlSort 0.7.2
  * 
  *  Copyright (C) 2014-2015 - Andrej Budinčević
  *
@@ -22,6 +22,7 @@ package com.pxlsort;
 
 public interface Info {
 	String NAME = "PxlSort";
-	String VERSION = "0.4.1";
+	String VERSION = "0.7.2";
 	int ANIM_SPEED = 10;
+	int ALIVE_CONSTANT = 200;
 }

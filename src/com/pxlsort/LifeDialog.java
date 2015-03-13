@@ -32,37 +32,36 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JSlider;
 import javax.swing.border.TitledBorder;
 
-public class SortDialog extends JDialog {
-	private static final long serialVersionUID = -256962939081259275L;
-	private int by = 1, dir = 1;
+public class LifeDialog extends JDialog {
+	private static final long serialVersionUID = -1629330603619813780L;
+	private int iter;
+	private int by;
 
+	public int getIterations() {
+		return iter;
+	}
+	
 	public int getBy() {
 		return by;
 	}
 
-	public int getDir() {
-		return dir;
-	}
+	public LifeDialog() {
+		final JSlider slide = new JSlider(JSlider.HORIZONTAL, 0, 400, 200);
 
-	public SortDialog() {
-		setTitle(Info.NAME + " - Sort options");
-
+		slide.setMajorTickSpacing(50);
+		slide.setMinorTickSpacing(1);
+		slide.setPaintTicks(true);
+		slide.setPaintLabels(true);
+		
 		JPanel choice = new JPanel(new GridLayout(2, 1));
 		JPanel colChoice = new JPanel(new FlowLayout());
-		JPanel dirChoice = new JPanel(new FlowLayout());
 
 		final JRadioButton red = new JRadioButton("Red", true);
 		final JRadioButton green = new JRadioButton("Green");
 		final JRadioButton blue = new JRadioButton("Blue");
-
-		final JRadioButton hor = new JRadioButton("Horizontal", true);
-		final JRadioButton ver = new JRadioButton("Vertical");
-		final JRadioButton diag = new JRadioButton("Diagonal");
-
-		/* Diagonal sorting is not functional yet */
-		diag.setEnabled(false);
 
 		JButton ok = new JButton("OK");
 
@@ -74,21 +73,15 @@ public class SortDialog extends JDialog {
 					by = 2;
 				else 
 					by = 3;
-
-				if(hor.isSelected())
-					dir = 1;
-				else
-					dir = 2;
+				
+				iter = slide.getValue();
 
 				dispose();
 			}
 		});
 
-		TitledBorder colTitle = BorderFactory.createTitledBorder("Color");
+		TitledBorder colTitle = BorderFactory.createTitledBorder("Alive cells");
 		colChoice.setBorder(colTitle);
-
-		TitledBorder dirTitle = BorderFactory.createTitledBorder("Direction");
-		dirChoice.setBorder(dirTitle);
 
 		ButtonGroup colChB = new ButtonGroup();
 
@@ -100,21 +93,20 @@ public class SortDialog extends JDialog {
 		colChoice.add(green);
 		colChoice.add(blue);
 
-		ButtonGroup dirChB = new ButtonGroup();
+		add(colChoice);
+		add(ok, BorderLayout.SOUTH);	
 
-		dirChB.add(hor);
-		dirChB.add(ver);
-		dirChB.add(diag);
+		TitledBorder sliderTitle = BorderFactory.createTitledBorder("Generations");
+		slide.setBorder(sliderTitle);
 
-		dirChoice.add(hor);
-		dirChoice.add(ver);
-		dirChoice.add(diag);
-
+		choice.add(slide);
 		choice.add(colChoice);
-		choice.add(dirChoice);
-
+		
 		add(choice);
+
 		add(ok, BorderLayout.SOUTH);
+
+		setTitle(Info.NAME + " - Conway's Game of Life");
 
 		setSize(300, 170);
 		setVisible(true);

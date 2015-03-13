@@ -1,5 +1,5 @@
 /*
- *  PxlSort 0.4.1
+ *  PxlSort 0.7.2
  * 
  *  Copyright (C) 2014-2015 - Andrej Budinčević
  *
@@ -171,6 +171,133 @@ public class PxlSort {
 			image.setRGB(rndX, rndY, image.getRGB(rndX1, rndY1));
 			image.setRGB(rndX1, rndY1, tmp);
 		}
+	}
+
+	public void manCell(int i, int j, int state) {
+		int value;
+		
+		for(int x = 0; x < 3; x++) {	
+			try {
+				if(by == 1)
+					value = (image.getRGB(i-1, j+x-1) & 0x00ff0000) >> 16;
+				else if(by == 2)
+					value = (image.getRGB(i-1, j+x-1) & 0x0000ff00) >> 8;
+				else 
+					value = (image.getRGB(i-1, j+x-1) & 0x000000ff);
+				
+				if((value > Info.ALIVE_CONSTANT && state == 1) || (value <= Info.ALIVE_CONSTANT && state == 0)) {
+					image.setRGB(i, j, image.getRGB(i-1, j+x-1));
+					return;
+				}
+			} catch(ArrayIndexOutOfBoundsException e) {}
+		}
+
+		for(int x = 0; x < 3; x++) {
+			try {
+				if(by == 1)
+					value = (image.getRGB(i+1, j+x-1) & 0x00ff0000) >> 16;
+				else if(by == 2)
+					value = (image.getRGB(i+1, j+x-1) & 0x0000ff00) >> 8;
+				else 
+					value = (image.getRGB(i+1, j+x-1) & 0x000000ff);
+
+				if((value > Info.ALIVE_CONSTANT && state == 1) || (value <= Info.ALIVE_CONSTANT && state == 0)) {
+					image.setRGB(i, j, image.getRGB(i+1, j+x-1));
+					return;
+				}
+			} catch(ArrayIndexOutOfBoundsException e) {}
+		}
+
+		for(int x = 0; x < 2; x++) {
+			try {
+				if(by == 1)
+					value = (image.getRGB(i, j+2*x-1) & 0x00ff0000) >> 16;
+				else if(by == 2)
+					value = (image.getRGB(i, j+2*x-1) & 0x0000ff00) >> 8;
+				else 
+					value = (image.getRGB(i, j+2*x-1) & 0x000000ff);
+
+				if((value > Info.ALIVE_CONSTANT && state == 1) || (value <= Info.ALIVE_CONSTANT && state == 0)) {
+					image.setRGB(i, j, image.getRGB(i, j+2*x-1));
+					return;
+				}
+			} catch(ArrayIndexOutOfBoundsException e) {}
+		}
+	}
+	
+	public void gof(int iter, int by) { 
+		this.by = by;
+		
+		for(int i = 0; i < iter; i++) 
+			gameOfLife();
+	}
+
+	public void gameOfLife() {
+		int h = image.getHeight();
+		int w = image.getWidth();
+
+		for(int i = 0; i < w; i++) {
+			for(int j = 0; j < h; j++) {				
+				int val;
+
+				if(by == 1)
+					val = (image.getRGB(i, j) & 0x00ff0000) >> 16;
+				else if(by == 2)
+					val = (image.getRGB(i, j) & 0x0000ff00) >> 8;
+				else 
+					val = (image.getRGB(i, j) & 0x000000ff);	
+
+				boolean alive = val > Info.ALIVE_CONSTANT;
+		
+				int value, aliveNeighbours = 0;
+		
+		
+				for(int x = 0; x < 3; x++) {	
+					try {
+						if(by == 1)
+							value = (image.getRGB(i-1, j+x-1) & 0x00ff0000) >> 16;
+						else if(by == 2)
+							value = (image.getRGB(i-1, j+x-1) & 0x0000ff00) >> 8;
+						else 
+							value = (image.getRGB(i-1, j+x-1) & 0x000000ff);
+		
+						aliveNeighbours = aliveNeighbours + (value > Info.ALIVE_CONSTANT ? 1 : 0);
+					} catch(ArrayIndexOutOfBoundsException e) {}
+				}
+		
+				for(int x = 0; x < 3; x++) {
+					try {
+						if(by == 1)
+							value = (image.getRGB(i+1, j+x-1) & 0x00ff0000) >> 16;
+						else if(by == 2)
+							value = (image.getRGB(i+1, j+x-1) & 0x0000ff00) >> 8;
+						else 
+							value = (image.getRGB(i+1, j+x-1) & 0x000000ff);
+		
+						aliveNeighbours = aliveNeighbours + (value > Info.ALIVE_CONSTANT ? 1 : 0);
+					} catch(ArrayIndexOutOfBoundsException e) {}
+				}
+		
+				for(int x = 0; x < 2; x++) {
+					try {
+						if(by == 1)
+							value = (image.getRGB(i, j+2*x-1) & 0x00ff0000) >> 16;
+						else if(by == 2)
+							value = (image.getRGB(i, j+2*x-1) & 0x0000ff00) >> 8;
+						else 
+							value = (image.getRGB(i, j+2*x-1) & 0x000000ff);
+		
+						aliveNeighbours = aliveNeighbours + (value > Info.ALIVE_CONSTANT ? 1 : 0);
+					} catch(ArrayIndexOutOfBoundsException e) {}
+				}
+		
+				if(alive && (aliveNeighbours < 2 || aliveNeighbours > 3)) 
+					manCell(i, j, 0);
+				else if(!alive && aliveNeighbours == 3) 
+					manCell(i, j, 1);		
+			}
+		}
+
 	}
 
 	public void write(String out) throws IOException {

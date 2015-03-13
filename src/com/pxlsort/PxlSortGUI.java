@@ -1,5 +1,5 @@
 /*
- *  PxlSort 0.4.1
+ *  PxlSort 0.7.2
  * 
  *  Copyright (C) 2014-2015 - Andrej Budinčević
  *
@@ -263,10 +263,12 @@ public class PxlSortGUI extends JFrame {
 		final JButton cRand = new JButton("Randomize");
 		final JButton cTrans = new JButton("Transpose");
 		final JButton cSort = new JButton("Sort");
+		final JButton cGOF = new JButton("Conway's Game of Life");
 
 		cRand.setMnemonic(KeyEvent.VK_R);
 		cTrans.setMnemonic(KeyEvent.VK_T);
 		cSort.setMnemonic(KeyEvent.VK_S);
+		cGOF.setMnemonic(KeyEvent.VK_C);
 
 		cRand.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -363,9 +365,46 @@ public class PxlSortGUI extends JFrame {
 				}
 			}
 		});
+		
+		cGOF.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(pxl != null && pxl.getImage() != null) {
+					final JDialog gof = new LifeDialog();
+
+					gof.setLocationRelativeTo(myRef);
+					gof.setVisible(true);
+
+					gof.addWindowListener(new WindowAdapter() {
+						public void windowClosed(WindowEvent e) {	
+							final int iter = ((LifeDialog) gof).getIterations();
+							final int by = ((LifeDialog) gof).getBy();
+
+							new Thread(new Runnable() {
+								public void run() {
+									time.start();
+
+									pxl.gof(iter, by);
+
+									time.stop();
+
+									repaint();
+
+									saved = false;
+
+									setTitle(Info.NAME + " - " + pxl.getImageName() + "*");
+								}
+							}).start();
+						}
+					});
+				} else {
+					JOptionPane.showMessageDialog(myRef, "No image loaded!", "Image error", JOptionPane.ERROR_MESSAGE);    
+				}
+			}
+		});
 
 
 		south.add(cSort);
+		south.add(cGOF);
 		south.add(cRand);
 		south.add(cTrans);
 
