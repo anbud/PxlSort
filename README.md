@@ -6,9 +6,11 @@ Abstract
 Using a custom implementation of [radix sort](http://en.wikipedia.org/wiki/Radix_sort), PxlSort can sort pixels in a given image. The image is first loaded into a matrix and then it can be sorted in several different ways. Since it's a matrix, it can be sorted **vertically** and **horizontally**. Diagonal sorting is also in planning but it's in early alpha currently and it's disabled in the main program. 
 Also, pixels can be sorted by their color values. They can be sorted by the amount *(0-255)* of **red**, **green** or **blue** color in them. By saving color values as bytes, radix sort is linear (*O(n)*) and lighting fast. 
 
-Apart from pixel sorting, PxlSort can also **randomize** pixels in a given image and it can also **transpose** the given matrix.
+Apart from pixel sorting, PxlSort can also **randomize** pixels in a given image, it can **transpose** the given matrix, and it can apply **Conway's Game of Life** on the given image.
 
-If you wish to know more about the implementation, read my blog post about it here: [Pixel sorting - Introduction to glitch art](http://zx.rs/1/Pixel-sorting---Introduction-to-glitch-art/).
+If you wish to know more about the implementation, read my blog post about it here: [Pixel sorting - Introduction to glitch art](http://zx.rs/1/Pixel-sorting---Introduction-to-glitch-art/). 
+
+Game of Life implementation is described in the following blog post: [Conway's Game of Life - Trying it on images](http://zx.rs/2/Conway's-Game-of-Life---Trying-it-on-images/).
 
 
 Usage
