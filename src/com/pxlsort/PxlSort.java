@@ -226,6 +226,8 @@ public class PxlSort {
 	}
 	
 	public void gof(int iter, int by) { 
+		stackUndo.push(deepCopy(image));
+		
 		this.by = by;
 		
 		for(int i = 0; i < iter; i++) 
